@@ -1,0 +1,11 @@
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+vim.cmd('hi Normal guibg=#0A0E14')
+vim.o.clipboard = "unnamedplus"
+vim.o.relativenumber = true
+vim.o.tabstop = 8
+vim.o.shiftwidth = 8
+vim.o.termguicolors = true
+vim.o.mouse = "a"
