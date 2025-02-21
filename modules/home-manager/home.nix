@@ -8,8 +8,6 @@
 {
   imports = [
     ./browser.nix
-    # ./hypr.nix
-    ./neovim/neovim.nix
     ./lf/lf.nix
   ];
 

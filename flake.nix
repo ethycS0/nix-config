@@ -1,4 +1,5 @@
 {
+
   description = "Nixos config flake";
 
   inputs = {
@@ -23,6 +24,10 @@
 
     # Xremap
     xremap-flake.url = "github:xremap/nix-flake";
+
+    # NixVim
+    nixvim.url = "github:ethycS0/nixvim-config";
+
   };
 
   outputs =
@@ -53,5 +58,6 @@
           inputs.home-manager.nixosModules.default
         ];
       };
+
     };
 }

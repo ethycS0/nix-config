@@ -7,8 +7,10 @@
     binutils
     gcc
     clang-tools
-    ccls
     libgcc
+    glibc
+    glibc_multi
+    bear
 
     # Lua Utils
     lua
@@ -25,6 +27,10 @@
 
     # Python Utils
     python3Full
+    uv
+
+    # Assembly
+    asm-lsp
 
     # Java Utils (Minecraft)
     (pkgs.jdk.override { enableJavaFX = true; })
@@ -33,11 +39,18 @@
     arduino-ide
     arduino-cli
     esptool
+    arduino-language-server
+
+    # Virtual Machine
+    qemu
+    gcc-arm-embedded
+
+    # RE and Bx
+    ghidra-bin
 
     # General Required Programs
     kitty
     zsh
-    neovim
     firefox
     git
     tmux
@@ -54,17 +67,18 @@
     libnotify
     swww
     wl-clipboard
-    neofetch
-    cowsay
     mpv
     ddcutil
     i2c-tools
     tree
     powerline-fonts
+    docker
+    docker-compose
+    ripgrep
+    file
 
     # Gaming
     steam
-    mangohud
     protonup
 
     # Screen Capture
@@ -73,6 +87,7 @@
     imagemagick
     swappy
     wf-recorder
+    tigervnc
 
   ];
 

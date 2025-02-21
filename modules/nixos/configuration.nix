@@ -15,7 +15,15 @@
     inputs.xremap-flake.nixosModules.default
   ];
 
-  boot.supportedFilesystems = ["fat32"];
+  # NixVim config
+  environment.systemPackages = [ inputs.nixvim.packages.${pkgs.system}.default ];
+
+  networking.firewall.allowedUDPPorts = [
+    7400
+    7401
+    8888
+  ];
+  networking.firewall.enable = false;
 
   # Environment Session Variables
   environment.sessionVariables = {
@@ -193,36 +201,36 @@
   };
 
   # Graphics
-  hardware = {
-    graphics.enable = true;
-    nvidia.modesetting.enable = true;
-    nvidia.open = true;
-    graphics.enable32Bit = true;
-  };
-  services.xserver.videoDrivers = [ "nvidia" ];
+  # hardware = {
+  #   graphics.enable = true;
+  #   nvidia.modesetting.enable = true;
+  #   nvidia.open = true;
+  #   graphics.enable32Bit = true;
+  # };
+  # services.xserver.videoDrivers = [ "nvidia" ];
 
-  hardware.nvidia.prime = {
-    offload = {
-      enable = true;
-      enableOffloadCmd = true;
-    };
+  # hardware.nvidia.prime = {
+  #   offload = {
+  #     enable = true;
+  #     enableOffloadCmd = true;
+  #   };
+  #
+  #   intelBusId = "PCI:00:02:0";
+  #   nvidiaBusId = "PCI:01:00:0";
+  #
+  # };
 
-    intelBusId = "PCI:00:02:0";
-    nvidiaBusId = "PCI:01:00:0";
-
-  };
-
-  specialisation = {
-    gaming.configuration = {
-      hardware.nvidia = {
-        prime.sync.enable = lib.mkForce true;
-        prime.offload = {
-          enable = lib.mkForce false;
-          enableOffloadCmd = lib.mkForce false;
-        };
-      };
-    };
-  };
+  # specialisation = {
+  #   gaming.configuration = {
+  #     hardware.nvidia = {
+  #       prime.sync.enable = lib.mkForce true;
+  #       prime.offload = {
+  #         enable = lib.mkForce false;
+  #         enableOffloadCmd = lib.mkForce false;
+  #       };
+  #     };
+  #   };
+  # };
 
   # Gaming Setup
   programs.steam = {
@@ -230,15 +238,23 @@
     gamescopeSession.enable = true;
 
   };
-  programs.gamemode.enable = true;
-  hardware.xpadneo.enable = true;
-  hardware.steam-hardware.enable = true;
+  # programs.gamemode.enable = true;
+  # hardware.xpadneo.enable = true;
+  # hardware.steam-hardware.enable = true;
 
   # Asus Control
-  services = {
-    asusd = {
-      enable = true;
-      enableUserService = true;
+  # services = {
+  #   asusd = {
+  #     enable = true;
+  #     enableUserService = true;
+  #   };
+  # };
+
+  # Docker
+  virtualisation.docker = {
+    enable = true;
+    daemon.settings = {
+      data-root = "/home/arjun/Docker/";
     };
   };
 
