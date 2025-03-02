@@ -2,8 +2,13 @@
 
 {
   environment.systemPackages = with pkgs; [
+    # Gnome Shit
+    gnome-tweaks
+    gnome-shell
+    gnome-extension-manager
+    auto-cpufreq
+
     # C/C++ Utils
-    stm32cubemx
     binutils
     gcc
     clang-tools
@@ -49,46 +54,32 @@
     ghidra-bin
 
     # General Required Programs
-    kitty
     zsh
     firefox
     git
     tmux
-    rofi-wayland
-    lf
-    dolphin
     syncthing
     unzip
+    zathura
     openssh
     discord
     obsidian
-    waybar
-    dunst
-    libnotify
-    swww
     wl-clipboard
     mpv
-    ddcutil
-    i2c-tools
     tree
     powerline-fonts
     docker
-    docker-compose
     ripgrep
     file
 
     # Gaming
     steam
     protonup
+    steam-run
 
-    # Screen Capture
-    grim
-    slurp
-    imagemagick
-    swappy
-    wf-recorder
-    tigervnc
-
+    # Core
+    pciutils
+    usbutils
   ];
 
 }

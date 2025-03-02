@@ -19,14 +19,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Hyprland
-    hyprland.url = "github:hyprwm/Hyprland";
-
     # Xremap
     xremap-flake.url = "github:xremap/nix-flake";
 
     # NixVim
     nixvim.url = "github:ethycS0/nixvim-config";
+
+    # Asus
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
   };
 
@@ -35,6 +35,7 @@
       self,
       nixpkgs,
       home-manager,
+      nixos-hardware,
       ...
     }@inputs:
     let
@@ -48,6 +49,7 @@
         specialArgs = { inherit inputs; };
         modules = [
           ./modules/home-manager/home.nix
+          nixos-hardware.nixosModules.asus-zephyrus-ga402
         ];
       };
 

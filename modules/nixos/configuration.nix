@@ -1,5 +1,4 @@
 {
-  config,
   pkgs,
   inputs,
   lib,
@@ -15,35 +14,50 @@
     inputs.xremap-flake.nixosModules.default
   ];
 
-  # NixVim config
-  environment.systemPackages = [ inputs.nixvim.packages.${pkgs.system}.default ];
+  # Environment
+  environment = {
 
-  networking.firewall.allowedUDPPorts = [
-    7400
-    7401
-    8888
-  ];
-  networking.firewall.enable = false;
+    # NixVim config
+    systemPackages = [ inputs.nixvim.packages.${pkgs.system}.default ];
 
-  # Environment Session Variables
-  environment.sessionVariables = {
-    # If cursor becomes invisible
-    WLR_NO_HARDWARE_CURSORS = "1";
-    # Hine electron apps to use wayland
-    NIXOS_OZONE_WL = "1";
-    # Proton for Steam
-    STEAM_EXTRA_COMPAT_TOOLS_PATHS = "\${HOME}/.steam/root/compatibilitytools.d";
-    # Minecraft
-    LD_LIBRARY_PATH = lib.makeLibraryPath [
-      pkgs.libglvnd
-      pkgs.pulseaudio
-    ];
+    # Environment Session Variables
+    sessionVariables = {
+      NIXOS_OZONE_WL = "1";
+
+      # Minecraft
+      LD_LIBRARY_PATH = lib.makeLibraryPath [
+        pkgs.libglvnd
+        pkgs.pulseaudio
+      ];
+    };
+
+    # Environment Variables
+    variables = {
+      EDITOR = "nvim";
+      VISUAL = "nvim";
+    };
   };
 
-  # Environment Variables
-  environment.variables = {
-    EDITOR = "nvim";
-    VISUAL = "nvim";
+  # Services
+  services = {
+    xserver = {
+      # Enable the X11 windowing system.
+      enable = true;
+
+      # Enable the GNOME Desktop Environment.
+      displayManager.gdm.enable = true;
+      displayManager.gdm.wayland = true;
+      desktopManager.gnome.enable = true;
+
+      # Graphics
+      videoDrivers = [ "amdgpu" ];
+
+      # Configure keymap in X11
+      xkb = {
+        layout = "us";
+        variant = "";
+      };
+    };
   };
 
   # Flakes and other Experimental Features Setup
@@ -53,22 +67,43 @@
   ];
 
   # Bootloader.
-  boot.loader.grub = {
-    enable = true;
-    useOSProber = true;
-    device = "nodev";
-    efiSupport = true;
+  boot = {
+    loader = {
+      grub = {
+        enable = true;
+        device = "nodev";
+        efiSupport = true;
+        backgroundColor = "#000000";
+        gfxmodeEfi = "2560x1600";
+        gfxpayloadEfi = "keep";
+        useOSProber = true;
+        font = "${pkgs.nerd-fonts.jetbrains-mono}/share/fonts/truetype/NerdFonts/JetBrainsMono/JetBrainsMonoNerdFont-Regular.ttf";
+        fontSize = 36;
+        splashImage = null;
+      };
+      efi = {
+        canTouchEfiVariables = true;
+      };
+    };
+    initrd.luks.devices."luks-e495f34a-2b13-4312-99a0-9027820fb316".device =
+      "/dev/disk/by-uuid/e495f34a-2b13-4312-99a0-9027820fb316";
   };
-  boot.loader.efi = {
-    canTouchEfiVariables = true;
-  };
-  boot.initrd.luks.devices."luks-df417708-4738-481a-a831-ffeadb4b9d6f".device =
-    "/dev/disk/by-uuid/df417708-4738-481a-a831-ffeadb4b9d6f";
 
   # Enable networking
-  networking.hostName = "nixos"; # Define your hostname.
-  networking.networkmanager.enable = true;
-  hardware.bluetooth.enable = true;
+  networking = {
+    hostName = "ethycS";
+    networkmanager.enable = true;
+
+    # Firewall
+    firewall = {
+      enable = false;
+      allowedUDPPorts = [
+        7400
+        7401
+        8888
+      ];
+    };
+  };
 
   # Time Zone.
   time.timeZone = "Asia/Kolkata";
@@ -85,12 +120,6 @@
     LC_PAPER = "en_IN";
     LC_TELEPHONE = "en_IN";
     LC_TIME = "en_IN";
-  };
-
-  # Configure keymap in X11
-  services.xserver.xkb = {
-    layout = "us";
-    variant = "";
   };
 
   # Udev
@@ -122,10 +151,6 @@
     shell = pkgs.zsh;
   };
 
-  # Brightness Control
-  hardware.i2c.enable = true;
-  # services.ddccontrol.enable = true;
-
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
@@ -147,16 +172,8 @@
     };
   };
 
-  # Hyprland Setup
-  programs.hyprland = {
-    enable = true;
-    package = inputs.hyprland.packages."${pkgs.system}".hyprland;
-    xwayland.enable = true;
-  };
-
   # Xremap Setup
   services.xremap = {
-    withHypr = true;
     userName = "arjun";
     yamlConfig = ''
       keymap:
@@ -172,7 +189,7 @@
     enable = true;
     openDefaultPorts = true;
     user = "arjun";
-    dataDir = "/home/arjun/Sync";
+    dataDir = "/home/arjun/sync";
     configDir = "/home/arjun/.config/syncthing";
     overrideDevices = false;
     overrideFolders = false;
@@ -200,68 +217,61 @@
     };
   };
 
-  # Graphics
-  # hardware = {
-  #   graphics.enable = true;
-  #   nvidia.modesetting.enable = true;
-  #   nvidia.open = true;
-  #   graphics.enable32Bit = true;
-  # };
-  # services.xserver.videoDrivers = [ "nvidia" ];
-
-  # hardware.nvidia.prime = {
-  #   offload = {
-  #     enable = true;
-  #     enableOffloadCmd = true;
-  #   };
-  #
-  #   intelBusId = "PCI:00:02:0";
-  #   nvidiaBusId = "PCI:01:00:0";
-  #
-  # };
-
-  # specialisation = {
-  #   gaming.configuration = {
-  #     hardware.nvidia = {
-  #       prime.sync.enable = lib.mkForce true;
-  #       prime.offload = {
-  #         enable = lib.mkForce false;
-  #         enableOffloadCmd = lib.mkForce false;
-  #       };
-  #     };
-  #   };
-  # };
-
   # Gaming Setup
   programs.steam = {
     enable = true;
     gamescopeSession.enable = true;
 
   };
-  # programs.gamemode.enable = true;
-  # hardware.xpadneo.enable = true;
-  # hardware.steam-hardware.enable = true;
+
+  # Hardware
+  hardware = {
+    bluetooth.enable = true;
+    i2c.enable = true;
+    graphics = {
+      enable = true;
+      enable32Bit = true;
+    };
+  };
 
   # Asus Control
-  # services = {
-  #   asusd = {
-  #     enable = true;
-  #     enableUserService = true;
-  #   };
-  # };
+  services = {
+    supergfxd.enable = true;
+    asusd = {
+      enable = true;
+      enableUserService = true;
+    };
+  };
 
   # Docker
   virtualisation.docker = {
     enable = true;
     daemon.settings = {
-      data-root = "/home/arjun/Docker/";
+      data-root = "/home/arjun/docker/";
     };
   };
 
-  # Others
-  xdg.portal.enable = true;
-  xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+  # # Battery Saving
+  services.power-profiles-daemon.enable = false;
+  services.auto-cpufreq = {
+    enable = true;
+    settings = {
+      battery = {
+        governor = "powersave";
+        energy_performance_preference = "power";
+        turbo = "never";
+        scaling_min_freq = 400000;
+        scaling_max_freq = 2200000;
+      };
 
-  system.stateVersion = "24.11"; # Did you read the comment?
+      charger = {
+        governor = "performance";
+        energy_performance_preference = "performance";
+        turbo = "auto";
+        scaling_max_freq = 3201000;
+      };
 
+    };
+  };
+  system.stateVersion = "24.11";
 }

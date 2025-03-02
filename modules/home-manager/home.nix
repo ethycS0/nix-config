@@ -7,19 +7,21 @@
 
 {
   imports = [
-    ./browser.nix
     ./lf/lf.nix
   ];
 
-  home.username = "arjun";
-  home.homeDirectory = "/home/arjun";
-  home.stateVersion = "24.11";
-  home.packages = [
-  ];
-  home.file = {
+  home = {
+    username = "arjun";
+    homeDirectory = "/home/arjun";
+    stateVersion = "24.11";
+    packages = [
+    ];
+    file = {
+    };
+    sessionVariables = {
+      EDITOR = "nvim";
+    };
   };
-  home.sessionVariables = {
-    EDITOR = "nvim";
-  };
+  programs.firefox.enable = true;
 
 }
