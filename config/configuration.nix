@@ -10,7 +10,6 @@
   imports = [
     ./hardware-configuration.nix
     ./packages.nix
-    inputs.xremap-flake.nixosModules.default
   ];
 
   # Environment
@@ -132,6 +131,7 @@
   # Groups
   users.groups = {
     plugdev = { };
+    keyd = { };
   };
 
   # Users
@@ -146,6 +146,9 @@
       "docker"
       "plugdev"
       "dialout"
+      "input"
+      "uinput"
+      "keyd"
     ];
     shell = pkgs.zsh;
   };
@@ -160,18 +163,6 @@
       pkgs.nerd-fonts.jetbrains-mono
       pkgs.font-awesome_5
     ];
-  };
-
-  # Xremap Setup
-  services.xremap = {
-    userName = "arjun";
-    yamlConfig = ''
-      keymap:
-        - name: main remaps
-          remap:
-            CapsLock: esc
-            esc: CapsLock
-    '';
   };
 
   # Syncthing Setup
@@ -222,6 +213,7 @@
       enable = true;
       enable32Bit = true;
     };
+    uinput.enable = true;
   };
 
   # Asus Control

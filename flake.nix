@@ -13,12 +13,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Xremap
-    xremap-flake.url = "github:xremap/nix-flake";
-
-    # NixVim
-    nixvim.url = "github:ethycS0/nixvim-config";
-
     # Asus
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
