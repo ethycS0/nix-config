@@ -7,12 +7,6 @@
     # Nix Packages Unstable Branch
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
-    # Home Manager
-    home-manager = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # Firefox
     firefox-addons = {
       url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
@@ -34,7 +28,6 @@
     {
       self,
       nixpkgs,
-      home-manager,
       nixos-hardware,
       ...
     }@inputs:
@@ -44,20 +37,11 @@
     in
     {
 
-      homeConfigurations."arjun" = home-manager.lib.homeManagerConfiguration {
-        inherit pkgs;
-        specialArgs = { inherit inputs; };
-        modules = [
-          ./modules/home-manager/home.nix
-          nixos-hardware.nixosModules.asus-zephyrus-ga402
-        ];
-      };
-
       nixosConfigurations."arjun" = nixpkgs.lib.nixosSystem {
         specialArgs = { inherit inputs; };
         modules = [
-          ./modules/nixos/configuration.nix
-          inputs.home-manager.nixosModules.default
+          ./config/configuration.nix
+          nixos-hardware.nixosModules.asus-zephyrus-ga402
         ];
       };
 

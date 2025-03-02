@@ -10,7 +10,6 @@
   imports = [
     ./hardware-configuration.nix
     ./packages.nix
-    inputs.home-manager.nixosModules.default
     inputs.xremap-flake.nixosModules.default
   ];
 
@@ -161,15 +160,6 @@
       pkgs.nerd-fonts.jetbrains-mono
       pkgs.font-awesome_5
     ];
-  };
-
-  # Home Manager Setup
-  home-manager = {
-    extraSpecialArgs = { inherit inputs; };
-    backupFileExtension = "hm-backup";
-    users = {
-      "arjun" = import ../home-manager/home.nix;
-    };
   };
 
   # Xremap Setup

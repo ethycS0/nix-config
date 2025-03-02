@@ -54,6 +54,7 @@
     ghidra-bin
 
     # General Required Programs
+    home-manager
     zsh
     firefox
     git
