@@ -7,12 +7,6 @@
     # Nix Packages Unstable Branch
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
-    # Firefox
-    firefox-addons = {
-      url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # Asus
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
@@ -36,6 +30,12 @@
         modules = [
           ./config/configuration.nix
           nixos-hardware.nixosModules.asus-zephyrus-ga402
+          (
+            { config, pkgs, ... }:
+            {
+              boot.kernelPackages = pkgs.callPackage ./config/linux-g14.nix { };
+            }
+          )
         ];
       };
 

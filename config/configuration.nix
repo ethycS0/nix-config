@@ -14,10 +14,6 @@
 
   # Environment
   environment = {
-
-    # NixVim config
-    systemPackages = [ inputs.nixvim.packages.${pkgs.system}.default ];
-
     # Environment Session Variables
     sessionVariables = {
       NIXOS_OZONE_WL = "1";
@@ -85,6 +81,7 @@
     };
     initrd.luks.devices."luks-e495f34a-2b13-4312-99a0-9027820fb316".device =
       "/dev/disk/by-uuid/e495f34a-2b13-4312-99a0-9027820fb316";
+    kernelPackages = pkgs.linuxPackages_latest;
   };
 
   # Enable networking
@@ -131,7 +128,6 @@
   # Groups
   users.groups = {
     plugdev = { };
-    keyd = { };
   };
 
   # Users
@@ -146,12 +142,10 @@
       "docker"
       "plugdev"
       "dialout"
-      "input"
-      "uinput"
-      "keyd"
     ];
     shell = pkgs.zsh;
   };
+  programs.zsh.enable = true;
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -162,6 +156,7 @@
     packages = [
       pkgs.nerd-fonts.jetbrains-mono
       pkgs.font-awesome_5
+      pkgs.fira-code
     ];
   };
 
@@ -170,7 +165,7 @@
     enable = true;
     openDefaultPorts = true;
     user = "arjun";
-    dataDir = "/home/arjun/sync";
+    dataDir = "/home/arjun/notes";
     configDir = "/home/arjun/.config/syncthing";
     overrideDevices = false;
     overrideFolders = false;
@@ -179,22 +174,6 @@
         user = "arjun";
         password = "ethycS";
       };
-    };
-  };
-
-  # Zsh
-  programs.zsh = {
-    enable = true;
-    enableCompletion = true;
-    autosuggestions.enable = true;
-    syntaxHighlighting.enable = true;
-    ohMyZsh = {
-      enable = true;
-      plugins = [
-        "git"
-        "sudo"
-      ];
-      theme = "robbyrussell";
     };
   };
 
@@ -212,6 +191,12 @@
     graphics = {
       enable = true;
       enable32Bit = true;
+      extraPackages = with pkgs; [
+        mesa
+        vaapiVdpau
+        libvdpau-va-gl
+      ];
+
     };
     uinput.enable = true;
   };
@@ -234,26 +219,9 @@
   };
 
   # # Battery Saving
-  services.power-profiles-daemon.enable = false;
-  services.auto-cpufreq = {
-    enable = true;
-    settings = {
-      battery = {
-        governor = "powersave";
-        energy_performance_preference = "power";
-        turbo = "never";
-        scaling_min_freq = 400000;
-        scaling_max_freq = 2200000;
-      };
-
-      charger = {
-        governor = "performance";
-        energy_performance_preference = "performance";
-        turbo = "auto";
-        scaling_max_freq = 3201000;
-      };
-
-    };
-  };
+  powerManagement.powertop.enable = true;
   system.stateVersion = "24.11";
+  environment.systemPackages = with pkgs; [ lact ];
+  systemd.packages = with pkgs; [ lact ];
+  systemd.services.lactd.wantedBy = [ "multi-user.target" ];
 }
