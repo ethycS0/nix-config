@@ -10,6 +10,7 @@
   imports = [
     ./hardware-configuration.nix
     ./packages.nix
+    ./kernel.nix
   ];
 
   # Environment
@@ -81,7 +82,7 @@
     };
     initrd.luks.devices."luks-e495f34a-2b13-4312-99a0-9027820fb316".device =
       "/dev/disk/by-uuid/e495f34a-2b13-4312-99a0-9027820fb316";
-    kernelPackages = pkgs.linuxPackages_latest;
+    # kernelPackages = pkgs.linuxPackages_latest;
   };
 
   # Enable networking
@@ -160,23 +161,6 @@
     ];
   };
 
-  # Syncthing Setup
-  services.syncthing = {
-    enable = true;
-    openDefaultPorts = true;
-    user = "arjun";
-    dataDir = "/home/arjun/notes";
-    configDir = "/home/arjun/.config/syncthing";
-    overrideDevices = false;
-    overrideFolders = false;
-    settings = {
-      gui = {
-        user = "arjun";
-        password = "ethycS";
-      };
-    };
-  };
-
   # Gaming Setup
   programs.steam = {
     enable = true;
@@ -209,6 +193,9 @@
       enableUserService = true;
     };
   };
+  environment.systemPackages = with pkgs; [ lact ];
+  systemd.packages = with pkgs; [ lact ];
+  systemd.services.lactd.wantedBy = [ "multi-user.target" ];
 
   # Docker
   virtualisation.docker = {
@@ -218,10 +205,20 @@
     };
   };
 
-  # # Battery Saving
+  # Battery Saving
   powerManagement.powertop.enable = true;
+  services.power-profiles-daemon.enable = true;
+
+  # NextDNS
+  services.nextdns = {
+    enable = true;
+    arguments = [
+      "-config"
+      "3d9bb9"
+      "-cache-size"
+      "10MB"
+    ];
+  };
+
   system.stateVersion = "24.11";
-  environment.systemPackages = with pkgs; [ lact ];
-  systemd.packages = with pkgs; [ lact ];
-  systemd.services.lactd.wantedBy = [ "multi-user.target" ];
 }

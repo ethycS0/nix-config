@@ -30,12 +30,12 @@
         modules = [
           ./config/configuration.nix
           nixos-hardware.nixosModules.asus-zephyrus-ga402
-          (
-            { config, pkgs, ... }:
-            {
-              boot.kernelPackages = pkgs.callPackage ./config/linux-g14.nix { };
-            }
-          )
+          # (
+          #   { config, pkgs, ... }:
+          #   {
+          #     boot.kernelPackages = pkgs.linuxPackagesFor (pkgs.callPackage ./config/linux-g14.nix { });
+          #   }
+          # )
         ];
       };
 

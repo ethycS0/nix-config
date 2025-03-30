@@ -6,7 +6,7 @@
 }@args:
 
 let
-  version = "6.10.9";
+  version = "6.13";
 in
 buildLinux (
   args
@@ -16,15 +16,15 @@ buildLinux (
     modDirVersion = version;
     src = fetchurl {
       url = "mirror://kernel/linux/kernel/v${lib.versions.major version}.x/linux-${version}.tar.xz";
-      hash = "sha256:0n385x7hc5pqxiiy26ampgzf56wqfvydg70va27xrhm7w1q9nj54";
+      hash = "sha256-553Mbrhmlca6v7B8KGGRK2NdUHXGzRzQVn0eoVX4DW4=";
     };
     kernelPatches =
       let
         g14-patch = {
           name = "g14";
           patch = fetchurl {
-            url = "https://gitlab.com/asus-linux/fedora-kernel/-/raw/rog-6.10/asus-patch-series.patch";
-            hash = "sha256-e296MVs/xJRN+gXzRKluxj8kKR8//GpFdxRfQLpdJj8=";
+            url = "https://gitlab.com/asus-linux/fedora-kernel/-/raw/rog-6.13/asus-patch-series.patch";
+            hash = "sha256-K6/5ibSrgmiX99qMb6OyXepUL/7clYHrRQY6NKhpy2s=";
           };
         };
         amdgpu-cleared-vram-for-GEM-allocations-patch = {

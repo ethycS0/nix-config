@@ -8,7 +8,7 @@
     lact
     mesa
     mesa-demos
-    mesa.drivers
+    nextdns
     libva
     libva-utils
     vaapiVdpau
