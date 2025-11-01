@@ -10,7 +10,6 @@
   imports = [
     ./hardware-configuration.nix
     ./packages.nix
-    ./kernel.nix
   ];
 
   # Environment
@@ -32,17 +31,18 @@
       VISUAL = "nvim";
     };
   };
+  hardware.enableAllFirmware = true;
 
   # Services
   services = {
+    # Enable the GNOME Desktop Environment.
+    displayManager.gdm.enable = true;
+    displayManager.gdm.wayland = true;
+    desktopManager.gnome.enable = true;
+
     xserver = {
       # Enable the X11 windowing system.
       enable = true;
-
-      # Enable the GNOME Desktop Environment.
-      displayManager.gdm.enable = true;
-      displayManager.gdm.wayland = true;
-      desktopManager.gnome.enable = true;
 
       # Graphics
       videoDrivers = [ "amdgpu" ];
@@ -53,6 +53,25 @@
         variant = "";
       };
     };
+
+    udev.packages = [
+      (pkgs.writeTextFile {
+        name = "stlink-udev-rules";
+        destination = "/lib/udev/rules.d/49-stlink.rules";
+        text = ''
+          # STMicroelectronics ST-LINK access for non-root
+          # Vendor ID 0483, common ST-LINK product IDs
+          SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3744", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
+          SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3748", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
+          SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
+
+          # Optional: ST-LINK/V3 common IDs (helpful if you use newer probes)
+          SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374d", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
+          SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374e", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
+          SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3752", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
+        '';
+      })
+    ];
   };
 
   # Flakes and other Experimental Features Setup
@@ -63,6 +82,8 @@
 
   # Bootloader.
   boot = {
+    kernelParams = [ "usbcore.autosuspend=-1" ];
+
     loader = {
       grub = {
         enable = true;
@@ -75,14 +96,29 @@
         font = "${pkgs.nerd-fonts.jetbrains-mono}/share/fonts/truetype/NerdFonts/JetBrainsMono/JetBrainsMonoNerdFont-Regular.ttf";
         fontSize = 36;
         splashImage = null;
+        extraEntries = ''
+          menuentry "Ubuntu" {
+            search --fs-uuid --set=root e6366da3-9a04-4668-aa9a-10cd3d3c4697
+            linux /@/boot/vmlinuz-6.8.0-79-generic root=UUID=e6366da3-9a04-4668-aa9a-10cd3d3c4697 ro rootflags=subvol=@ quiet splash
+            initrd /@/boot/initrd.img-6.8.0-79-generic
+          }
+        '';
       };
       efi = {
         canTouchEfiVariables = true;
       };
     };
-    initrd.luks.devices."luks-e495f34a-2b13-4312-99a0-9027820fb316".device =
-      "/dev/disk/by-uuid/e495f34a-2b13-4312-99a0-9027820fb316";
-    # kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages_latest;
+    initrd = {
+      luks.devices."luks-e495f34a-2b13-4312-99a0-9027820fb316".device =
+        "/dev/disk/by-uuid/e495f34a-2b13-4312-99a0-9027820fb316";
+      availableKernelModules = [
+        "xhci_hcd"
+        "ehci_hcd"
+        "uhci_hcd"
+        "usbhid"
+      ];
+    };
   };
 
   # Enable networking
@@ -129,6 +165,7 @@
   # Groups
   users.groups = {
     plugdev = { };
+    libvirtd.members = [ "arjun" ];
   };
 
   # Users
@@ -143,6 +180,7 @@
       "docker"
       "plugdev"
       "dialout"
+      "libvirtd"
     ];
     shell = pkgs.zsh;
   };
@@ -177,7 +215,7 @@
       enable32Bit = true;
       extraPackages = with pkgs; [
         mesa
-        vaapiVdpau
+        libva-vdpau-driver
         libvdpau-va-gl
       ];
 
@@ -197,14 +235,6 @@
   systemd.packages = with pkgs; [ lact ];
   systemd.services.lactd.wantedBy = [ "multi-user.target" ];
 
-  # Docker
-  virtualisation.docker = {
-    enable = true;
-    daemon.settings = {
-      data-root = "/home/arjun/docker/";
-    };
-  };
-
   # Battery Saving
   powerManagement.powertop.enable = true;
   services.power-profiles-daemon.enable = true;
@@ -220,5 +250,19 @@
     ];
   };
 
+  # virtualisation
+  programs.virt-manager.enable = true;
+  virtualisation = {
+    libvirtd.enable = true;
+    spiceUSBRedirection.enable = true;
+    docker = {
+      enable = true;
+      daemon.settings = {
+        data-root = "/home/arjun/docker/";
+      };
+    };
+  };
+
+  # ... rest of your configuration
   system.stateVersion = "24.11";
 }

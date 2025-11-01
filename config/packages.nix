@@ -2,6 +2,7 @@
 
 {
   environment.systemPackages = with pkgs; [
+    linux-firmware
     powertop
     home-manager
     codeium
@@ -11,7 +12,8 @@
     nextdns
     libva
     libva-utils
-    vaapiVdpau
+    libva-vdpau-driver
     vdpauinfo
+    btrfs-progs
   ];
 }
