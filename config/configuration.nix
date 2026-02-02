@@ -12,6 +12,12 @@
     ./packages.nix
   ];
 
+  documentation = {
+    enable = true;
+    man.enable = true;
+    dev.enable = true;
+  };
+
   # Environment
   environment = {
     # Environment Session Variables
@@ -31,7 +37,10 @@
       VISUAL = "nvim";
     };
   };
-  hardware.enableAllFirmware = true;
+
+  hardware = {
+    enableAllFirmware = true;
+  };
 
   # Services
   services = {
@@ -39,6 +48,41 @@
     displayManager.gdm.enable = true;
     displayManager.gdm.wayland = true;
     desktopManager.gnome.enable = true;
+
+    # Udev
+    udev = {
+      enable = true;
+      extraRules = ''
+        SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="374b", MODE="0666", GROUP="plugdev"
+      '';
+
+      packages = [
+        (pkgs.writeTextFile {
+          name = "stlink-udev-rules";
+          destination = "/lib/udev/rules.d/49-stlink.rules";
+          text = ''
+            # STMicroelectronics ST-LINK access for non-root
+            # Vendor ID 0483, common ST-LINK product IDs
+            SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3744", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
+            SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3748", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
+            SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
+
+            # Optional: ST-LINK/V3 common IDs (helpful if you use newer probes)
+            SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374d", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
+            SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374e", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
+            SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3752", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
+          '';
+        })
+
+        (pkgs.writeTextFile {
+          name = "esp-prog-udev-rules";
+          destination = "/lib/udev/rules.d/49-esp-prog.rules";
+          text = ''
+            SUBSYSTEMS=="usb", ATTRS{idVendor}=="0403", ATTR{idProduct}=="6010", MODE:="0666", GROUP:="plugdev", TAG+="uaccess"
+          '';
+        })
+      ];
+    };
 
     xserver = {
       # Enable the X11 windowing system.
@@ -54,24 +98,43 @@
       };
     };
 
-    udev.packages = [
-      (pkgs.writeTextFile {
-        name = "stlink-udev-rules";
-        destination = "/lib/udev/rules.d/49-stlink.rules";
-        text = ''
-          # STMicroelectronics ST-LINK access for non-root
-          # Vendor ID 0483, common ST-LINK product IDs
-          SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3744", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
-          SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3748", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
-          SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
+    # Asus Control
+    supergfxd.enable = true;
+    asusd = {
+      enable = true;
+      enableUserService = true;
+    };
 
-          # Optional: ST-LINK/V3 common IDs (helpful if you use newer probes)
-          SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374d", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
-          SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374e", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
-          SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3752", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"
-        '';
-      })
-    ];
+    power-profiles-daemon.enable = true;
+
+    # NextDNS
+    nextdns = {
+      enable = true;
+      arguments = [
+        "-config"
+        "3d9bb9"
+        "-cache-size"
+        "10MB"
+      ];
+    };
+
+    # Taskwarrior Host
+    taskchampion-sync-server = {
+      enable = true;
+      host = "0.0.0.0";
+      port = 8080;
+    };
+
+    tailscale.enable = true;
+    resolved = {
+      enable = true;
+      extraConfig = ''
+        [Resolve]
+        DNS=45.90.28.40#3d9bb9.dns.nextdns.io
+        DNS=45.90.30.40#3d9bb9.dns.nextdns.io
+        DNSOverTLS=yes
+      '';
+    };
   };
 
   # Flakes and other Experimental Features Setup
@@ -128,13 +191,20 @@
 
     # Firewall
     firewall = {
-      enable = false;
+      enable = true;
+      trustedInterfaces = [ "tailscale0" ];
+      allowedTCPPorts = [ 8080 ];
       allowedUDPPorts = [
         7400
         7401
         8888
       ];
     };
+
+    nameservers = [
+      "45.90.28.40"
+      "45.90.30.40"
+    ];
   };
 
   # Time Zone.
@@ -154,14 +224,6 @@
     LC_TIME = "en_IN";
   };
 
-  # Udev
-  services.udev = {
-    enable = true;
-    extraRules = ''
-      SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="374b", MODE="0666", GROUP="plugdev"
-    '';
-  };
-
   # Groups
   users.groups = {
     plugdev = { };
@@ -173,6 +235,7 @@
     isNormalUser = true;
     description = "Arjun Salunkhe";
     extraGroups = [
+      "adbusers"
       "networkmanager"
       "wheel"
       "i2c"
@@ -184,7 +247,18 @@
     ];
     shell = pkgs.zsh;
   };
-  programs.zsh.enable = true;
+  programs = {
+    zsh.enable = true;
+    adb.enable = true;
+    virt-manager.enable = true;
+
+    # Gaming Setup
+    steam = {
+      enable = true;
+      gamescopeSession.enable = true;
+
+    };
+  };
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -197,13 +271,6 @@
       pkgs.font-awesome_5
       pkgs.fira-code
     ];
-  };
-
-  # Gaming Setup
-  programs.steam = {
-    enable = true;
-    gamescopeSession.enable = true;
-
   };
 
   # Hardware
@@ -223,35 +290,15 @@
     uinput.enable = true;
   };
 
-  # Asus Control
-  services = {
-    supergfxd.enable = true;
-    asusd = {
-      enable = true;
-      enableUserService = true;
-    };
-  };
   environment.systemPackages = with pkgs; [ lact ];
   systemd.packages = with pkgs; [ lact ];
   systemd.services.lactd.wantedBy = [ "multi-user.target" ];
 
   # Battery Saving
   powerManagement.powertop.enable = true;
-  services.power-profiles-daemon.enable = true;
-
-  # NextDNS
-  services.nextdns = {
-    enable = true;
-    arguments = [
-      "-config"
-      "3d9bb9"
-      "-cache-size"
-      "10MB"
-    ];
-  };
 
   # virtualisation
-  programs.virt-manager.enable = true;
+
   virtualisation = {
     libvirtd.enable = true;
     spiceUSBRedirection.enable = true;
