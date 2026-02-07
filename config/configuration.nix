@@ -1,6 +1,5 @@
 {
   pkgs,
-  inputs,
   lib,
   ...
 }:
@@ -38,9 +37,12 @@
     };
   };
 
-  hardware = {
-    enableAllFirmware = true;
-  };
+  swapDevices = [
+    {
+      device = "/var/lib/swapfile";
+      size = 16 * 1024;
+    }
+  ];
 
   # Services
   services = {
@@ -125,15 +127,24 @@
       port = 8080;
     };
 
+    immich = {
+      enable = true;
+      host = "0.0.0.0";
+      port = 2283;
+      openFirewall = true;
+      mediaLocation = "/var/lib/immich";
+    };
+
     tailscale.enable = true;
     resolved = {
       enable = true;
-      extraConfig = ''
-        [Resolve]
-        DNS=45.90.28.40#3d9bb9.dns.nextdns.io
-        DNS=45.90.30.40#3d9bb9.dns.nextdns.io
-        DNSOverTLS=yes
-      '';
+      settings.Resolve = {
+        DNS = [
+          "45.90.28.40#3d9bb9.dns.nextdns.io"
+          "45.90.30.40#3d9bb9.dns.nextdns.io"
+        ];
+        DNSOverTLS = true;
+      };
     };
   };
 
@@ -159,29 +170,18 @@
         font = "${pkgs.nerd-fonts.jetbrains-mono}/share/fonts/truetype/NerdFonts/JetBrainsMono/JetBrainsMonoNerdFont-Regular.ttf";
         fontSize = 36;
         splashImage = null;
-        extraEntries = ''
-          menuentry "Ubuntu" {
-            search --fs-uuid --set=root e6366da3-9a04-4668-aa9a-10cd3d3c4697
-            linux /@/boot/vmlinuz-6.8.0-79-generic root=UUID=e6366da3-9a04-4668-aa9a-10cd3d3c4697 ro rootflags=subvol=@ quiet splash
-            initrd /@/boot/initrd.img-6.8.0-79-generic
-          }
-        '';
       };
       efi = {
         canTouchEfiVariables = true;
       };
     };
     kernelPackages = pkgs.linuxPackages_latest;
-    initrd = {
-      luks.devices."luks-e495f34a-2b13-4312-99a0-9027820fb316".device =
-        "/dev/disk/by-uuid/e495f34a-2b13-4312-99a0-9027820fb316";
-      availableKernelModules = [
-        "xhci_hcd"
-        "ehci_hcd"
-        "uhci_hcd"
-        "usbhid"
-      ];
-    };
+    initrd.availableKernelModules = [
+      "xhci_hcd"
+      "ehci_hcd"
+      "uhci_hcd"
+      "usbhid"
+    ];
   };
 
   # Enable networking
@@ -227,29 +227,36 @@
   # Groups
   users.groups = {
     plugdev = { };
-    libvirtd.members = [ "arjun" ];
+    libvirtd.members = [ "ethycs" ];
   };
 
   # Users
-  users.users.arjun = {
-    isNormalUser = true;
-    description = "Arjun Salunkhe";
-    extraGroups = [
-      "adbusers"
-      "networkmanager"
-      "wheel"
-      "i2c"
-      "syncthing"
-      "docker"
-      "plugdev"
-      "dialout"
-      "libvirtd"
+  users.users = {
+    ethycs = {
+      isNormalUser = true;
+      description = "ethycS";
+      extraGroups = [
+        "adbusers"
+        "networkmanager"
+        "wheel"
+        "i2c"
+        "syncthing"
+        "docker"
+        "plugdev"
+        "dialout"
+        "libvirtd"
+      ];
+      shell = pkgs.zsh;
+    };
+
+    immich.extraGroups = [
+      "video"
+      "render"
     ];
-    shell = pkgs.zsh;
   };
+
   programs = {
     zsh.enable = true;
-    adb.enable = true;
     virt-manager.enable = true;
 
     # Gaming Setup
@@ -275,6 +282,7 @@
 
   # Hardware
   hardware = {
+    enableAllFirmware = true;
     bluetooth.enable = true;
     i2c.enable = true;
     graphics = {
@@ -291,24 +299,15 @@
   };
 
   environment.systemPackages = with pkgs; [ lact ];
-  systemd.packages = with pkgs; [ lact ];
-  systemd.services.lactd.wantedBy = [ "multi-user.target" ];
+  systemd = {
+    packages = with pkgs; [ lact ];
+    services = {
+      lactd.wantedBy = [ "multi-user.target" ];
+    };
+  };
 
   # Battery Saving
   powerManagement.powertop.enable = true;
-
-  # virtualisation
-
-  virtualisation = {
-    libvirtd.enable = true;
-    spiceUSBRedirection.enable = true;
-    docker = {
-      enable = true;
-      daemon.settings = {
-        data-root = "/home/arjun/docker/";
-      };
-    };
-  };
 
   # ... rest of your configuration
   system.stateVersion = "24.11";

@@ -25,7 +25,7 @@
     in
     {
 
-      nixosConfigurations."arjun" = nixpkgs.lib.nixosSystem {
+      nixosConfigurations."ethycS" = nixpkgs.lib.nixosSystem {
         specialArgs = { inherit inputs; };
         modules = [
           ./config/configuration.nix
