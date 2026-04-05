@@ -10,34 +10,15 @@
     # Asus
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
+    # Wrapper Modules
+    wrapper-modules.url = "github:BirdeeHub/nix-wrapper-modules";
+
+    # Flake Parts
+    flake-parts.url = "github:hercules-ci/flake-parts";
+
+    # Import Tree
+    import-tree.url = "github:vic/import-tree";
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      nixos-hardware,
-      ...
-    }@inputs:
-    let
-      system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
-    in
-    {
-
-      nixosConfigurations."ethycS" = nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs; };
-        modules = [
-          ./config/configuration.nix
-          nixos-hardware.nixosModules.asus-zephyrus-ga402
-          # (
-          #   { config, pkgs, ... }:
-          #   {
-          #     boot.kernelPackages = pkgs.linuxPackagesFor (pkgs.callPackage ./config/linux-g14.nix { });
-          #   }
-          # )
-        ];
-      };
-
-    };
+  outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
 }
