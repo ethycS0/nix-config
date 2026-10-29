@@ -42,13 +42,28 @@
 
       swapDevices = [
         {
-          device = "/var/lib/swapfile";
+          device = "/swapfile";
           size = 16 * 1024;
         }
       ];
 
       # Services
       services = {
+        logind.settings.Login = {
+          HandleLidSwitch = "ignore";
+          HandleLidSwitchExternalPower = "ignore";
+          HandleLidSwitchDocked = "ignore";
+        };
+
+        openssh = {
+          enable = true;
+          openFirewall = true;
+
+          settings = {
+            PasswordAuthentication = true;
+          };
+        };
+
         gvfs.enable = true;
         upower.enable = true;
 
@@ -85,9 +100,6 @@
           enable = true;
           extraRules = ''
             SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="374b", MODE="0666", GROUP="plugdev"
-
-            ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x1002", ATTR{device}=="0x73ef", ATTR{power/control}="auto", ATTR{power/autosuspend_delay_ms}="1000"
-            ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x1002", ATTR{device}=="0xab28", ATTR{power/control}="auto", ATTR{power/autosuspend_delay_ms}="1000"
           '';
 
           packages = [
@@ -179,6 +191,30 @@
         };
       };
 
+      # Enable networking
+      networking = {
+        hostName = "ethycS";
+        networkmanager.enable = true;
+
+        # Firewall
+        firewall = {
+          enable = true;
+          checkReversePath = "loose";
+          interfaces."tailscale0" = {
+            allowedTCPPorts = [
+              25565
+              8080
+              2283
+            ];
+          };
+        };
+
+        nameservers = [
+          "45.90.28.40"
+          "45.90.30.40"
+        ];
+      };
+
       # Flakes and other Experimental Features Setup
       nix.settings.experimental-features = [
         "nix-command"
@@ -187,8 +223,7 @@
 
       # Bootloader.
       boot = {
-        kernelParams = [ "amdgpu.runpm=1" ];
-
+        kernelParams = [ "amdgpu.dcdebugmask=0x10" ];
         loader = {
           grub = {
             enable = true;
@@ -212,29 +247,6 @@
           "ehci_hcd"
           "uhci_hcd"
           "usbhid"
-        ];
-      };
-
-      # Enable networking
-      networking = {
-        hostName = "ethycS";
-        networkmanager.enable = true;
-
-        # Firewall
-        firewall = {
-          enable = false;
-          interfaces."tailscale0" = {
-            allowedTCPPorts = [
-              25565
-              8080
-              2283
-            ];
-          };
-        };
-
-        nameservers = [
-          "45.90.28.40"
-          "45.90.30.40"
         ];
       };
 
@@ -271,7 +283,6 @@
             "networkmanager"
             "wheel"
             "i2c"
-            "syncthing"
             "docker"
             "plugdev"
             "dialout"
@@ -287,6 +298,21 @@
       };
 
       programs = {
+        dms-shell = {
+          enable = true;
+
+          systemd = {
+            enable = true;
+            restartIfChanged = true;
+          };
+        };
+
+        kdeconnect = {
+          enable = true;
+          package = pkgs.valent;
+        };
+
+        nix-ld.enable = true;
         dconf.enable = true;
         zsh.enable = true;
         virt-manager.enable = true;
@@ -337,7 +363,6 @@
         };
       };
 
-      # ... rest of your configuration
       system.stateVersion = "24.11";
     };
 }

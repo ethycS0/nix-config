@@ -16,47 +16,36 @@
     {
       packages.my-niri = inputs.wrapper-modules.wrappers.niri.wrap {
         inherit pkgs;
-        v2-settings = true;
         settings = {
 
           xwayland-satellite = {
             path = lib.getExe pkgs.xwayland-satellite;
           };
 
-          spawn-at-startup = [
-            (lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.my-noctalia)
-
-            [
-              (lib.getExe pkgs.swaybg)
-              "-c"
-              "#000000"
-            ]
-
-            (lib.getExe pkgs.gromit-mpx)
-          ];
-
           hotkey-overlay = {
             skip-at-startup = true;
           };
 
           outputs = {
-            "eDP-2" = {
+            "DP-3" = {
+              mode = "2560x1440@179.877";
+              scale = 1;
               position = _: {
                 props = {
                   x = 0;
                   y = 0;
                 };
               };
-              scale = 1.25;
             };
-            "DP-1" = {
+            "eDP-2" = {
+              mode = "2560x1600@120.000";
+              scale = 1.25;
               position = _: {
                 props = {
-                  x = 2048;
-                  y = 0;
+                  x = 0;
+                  y = 1440;
                 };
               };
-              scale = 1.0;
             };
           };
 
@@ -70,13 +59,23 @@
           };
 
           layout = {
-            gaps = 3;
+            gaps = 1;
+            background-color = "transparent";
+            focus-ring.width = 1;
+            border.width = 1;
           };
+
+          layer-rules = [
+            {
+              matches = [ { namespace = "dms:blurwallpaper"; } ];
+              place-within-backdrop = true;
+            }
+          ];
 
           # Keybindings
           binds = {
             "Mod+D".spawn = [
-              (lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.my-noctalia)
+              # (lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.my-noctalia)
               "ipc"
               "call"
               "launcher"
@@ -93,6 +92,7 @@
               (lib.getExe pkgs.gromit-mpx)
               "--toggle"
             ];
+            "Mod+Shift+A".screenshot = [ ];
 
             # Window Management
             "Mod+W".close-window = [ ];
@@ -108,8 +108,8 @@
 
             "Mod+Shift+H".move-column-left = [ ];
             "Mod+Shift+L".move-column-right = [ ];
-            "Mod+Shift+K".move-window-up-or-to-workspace-up = [ ];
-            "Mod+Shift+J".move-window-down-or-to-workspace-down = [ ];
+            "Mod+Shift+K".move-window-up = [ ];
+            "Mod+Shift+J".move-window-down = [ ];
 
             "Mod+Alt+H".set-column-width = "-10%";
             "Mod+Alt+L".set-column-width = "+10%";
@@ -126,6 +126,41 @@
             "Mod+Shift+2".move-column-to-workspace = 2;
             "Mod+Shift+3".move-column-to-workspace = 3;
             "Mod+Shift+4".move-column-to-workspace = 4;
+
+            # Monitors
+            "Mod+Ctrl+K".focus-monitor-up = [ ];
+            "Mod+Ctrl+J".focus-monitor-down = [ ];
+
+            "Mod+Shift+Ctrl+K".move-window-to-monitor-up = [ ];
+            "Mod+Shift+Ctrl+J".move-window-to-monitor-down = [ ];
+
+            # Laptop Buttons
+            "XF86AudioRaiseVolume".spawn = [
+              "wpctl"
+              "set-volume"
+              "@DEFAULT_AUDIO_SINK@"
+              "5%+"
+              "-l"
+              "1.5"
+            ];
+            "XF86AudioLowerVolume".spawn = [
+              "wpctl"
+              "set-volume"
+              "@DEFAULT_AUDIO_SINK@"
+              "5%-"
+            ];
+            "XF86AudioMute".spawn = [
+              "wpctl"
+              "set-mute"
+              "@DEFAULT_AUDIO_SINK@"
+              "toggle"
+            ];
+            "XF86AudioMicMute".spawn = [
+              "wpctl"
+              "set-mute"
+              "@DEFAULT_AUDIO_SOURCE@"
+              "toggle"
+            ];
 
             # Quit
             "Mod+Shift+Escape".quit = [ ];
